@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Piperpal Location-based Search Engine</title>
+  <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body onload="getMovement()">
+  <img width="480" src="https://www.piperpal.com/img/Piperpal.png" alt="www.piperpal.com" />
+    <form id="locationForm" action="https://api.piperpal.com/location/json.php" method="GET">
+        <button type="button" onclick="getMovement();">Get Current Movement</button><br>
+        <input type="text" id="glat" name="glat" value="" placeholder="Latitude"><br>
+        <input type="text" id="glon" name="glon" value="" placeholder="Longitude"><br>
+	<input type="text" id="galt" name="galt" value="" placeholder="Altitude"><br>
+	<input type="text" id="service" name="service" value="Search" placeholder="BigDipper"><br>
+	<input type="text" id="radius" name="radius" value="10000" placeholder="100000">
+        <!-- Display geolocation data -->
+        <p id="locationInfo"></p>
+        <button type="submit">Submit</button>
+    </form>
+      <script>
+        function getMovement() {
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(showPosition, showError);
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+
+	function showPosition(position) {
+            const locationInfo = document.getElementById("locationInfo");
+            const glatInput = document.getElementById("glat");
+            const glonInput = document.getElementById("glon");
+            const galtInput = document.getElementById("galt");
+
+            locationInfo.innerHTML = `Current Movement: Latitude ${position.coords.latitude}, Longitude ${position.coords.longitude}, Altitude ${position.coords.altitude}`;
+            glatInput.value = position.coords.latitude;
+            glonInput.value = position.coords.longitude;
+            galtInput.value = position.coords.altitude;
+	}
+
+        function showError(error) {
+            const locationInfo = document.getElementById("locationInfo");
+            switch (error.code) {
+                case error.PERMISSION_DENIED:
+                    locationInfo.innerHTML = "User denied the request for Geolocation.";
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    locationInfo.innerHTML = "Movement information is unavailable.";
+                    break;
+                case error.TIMEOUT:
+                    locationInfo.innerHTML = "The request to get user location timed out.";
+                    break;
+                case error.UNKNOWN_ERROR:
+                    locationInfo.innerHTML = "An unknown error occurred.";
+                    break;
+            }
+        }
+    </script>
+  <div id="log">Location: </div>
+  <script>
+    $(document).ready(function() {
+      setInterval(function() {
+        if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(ajaxCall);
+        } else {
+          $('#log').html("GPS is not available");
+        }
+
+        function ajaxCall(position) {
+          var latitude = position.coords.latitude;
+          var longitude = position.coords.longitude;
+          var altitude = position.coords.altitude;
+	  var radius = 10000;
+	  var service = "Search";
+          $.ajax({
+            url: "https://api.piperpal.com/location/json.php",
+            type: 'GET',
+            data: { 'glat': latitude, 'glon': longitude, 'radius': radius, 'service': service },
+            success: function(response) {
+              var obj = response;
+	      // jQuery.parseJSON(response);
+              $('#log').html(JSON.stringify(obj, null, 2));
+            }
+          });
+        }
+      },30000);
+    });
+  </script>
+</body>
+</html>
